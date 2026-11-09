@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오늘의 교실 - 우리 반 학급 관리</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts (Noto Sans KR) -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        // 감성적이고 세련된 숲&에메랄드 톤으로 업데이트
+                        forest: {
+                            50: '#f2f9f5',
+                            100: '#e1f2e7',
+                            200: '#c5e5d1',
+                            300: '#9bcfae',
+                            400: '#6bb185',
+                            500: '#469564',
+                            600: '#33784e',
+                            700: '#29603f',
+                            800: '#234d34',
+                            900: '#1d402b',
+                            950: '#0e2317',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans KR', 'sans-serif'],
+                        display: ['Plus Jakarta Sans', 'Noto Sans KR', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 커스텀 스크롤바 */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f2f9f5;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c5e5d1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #469564;
+        }
+        
+        /* 세련된 배경 패턴 & 그래디언트 애니메이션 효과 */
+        .bg-pattern {
+            background-color: #f3f8f5;
+            background-image: radial-gradient(#d3e7da 0.85px, transparent 0.85px);
+            background-size: 18px 18px;
+        }
+        
+        /* 카드 호버 박스 쉐도우 및 모던 라운딩 */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(225, 242, 231, 0.8);
+            box-shadow: 0 10px 30px -5px rgba(29, 64, 43, 0.05);
+        }
+
+        .header-gradient {
+            background: linear-gradient(135deg, #1d402b 0%, #29603f 50%, #33784e 100%);
+        }
+
+        .sub-header-gradient {
+            background: linear-gradient(135deg, #e1f2e7 0%, #f2f9f5 100%);
+        }
+    </style>
+</head>
+<body class="bg-pattern text-slate-800 font-sans min-h-screen flex flex-col antialiased pb-12">
+
+    <!-- 상단 헤더 -->
+    <header class="header-gradient text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-5xl mx-auto px-4 py-4 flex flex-wrap justify-between items-center gap-3">
+            <div class="flex items-center space-x-3.5">
+                <div class="bg-white/15 p-2.5 rounded-2xl backdrop-blur-md border border-white/20 shadow-inner">
+                    <i class="fa-solid fa-graduation-cap text-2xl text-emerald-300"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-black font-display tracking-tight text-white flex items-center gap-2">
+                        오늘의 교실 <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-400/20 text-emerald-200 border border-emerald-300/30">CLASSROOM</span>
+                    </h1>
+                    <p class="text-xs text-forest-200/90 font-medium">학급 일정 · 오늘의 할 일 · 공지사항 정리</p>
+                </div>
+            </div>
+            <div class="text-right text-xs sm:text-sm bg-black/15 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/10 shadow-sm flex items-center">
+                <i class="fa-regular fa-calendar-check text-emerald-300 mr-2 text-base"></i>
+                <span id="current-date-display" class="font-semibold text-forest-50 tracking-wide">2026년 --월 --일</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- 메인 컨텐츠 영역 -->
+    <main class="max-w-5xl mx-auto px-4 pt-6 flex-grow w-full space-y-6">
+
+        <!-- 안내문구 (처음 방문자용 온보딩 바) -->
+        <div id="welcome-banner" class="glass-card rounded-2xl p-4 sm:p-5 flex items-start gap-4 transition-all border-l-4 border-l-forest-500">
+            <div class="bg-forest-100 text-forest-700 p-3 rounded-2xl shrink-0">
+                <i class="fa-solid fa-leaf text-xl text-forest-600"></i>
+            </div>
+            <div class="flex-grow text-sm">
+                <h2 class="font-bold text-forest-950 text-base mb-1 flex items-center gap-1.5">
+                    반가워요, 우리 반! 🌱
+                </h2>
+                <p class="text-slate-600 leading-relaxed text-xs sm:text-sm">
+                    복잡한 가입 없이 바로 사용하세요! 알림, 숙제, 학사 일정을 작성하면 이 브라우저에 안전하게 보관됩니다.
+                </p>
+            </div>
+            <button onclick="dismissBanner()" class="text-slate-400 hover:text-forest-700 p-1 rounded-xl transition-colors">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <!-- 3개 메인 카드 레이아웃 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+            <!-- 1. 학급 공지사항 정리 -->
+            <section class="glass-card rounded-3xl flex flex-col h-[520px] transition-all hover:shadow-xl hover:-translate-y-0.5 duration-200 overflow-hidden">
+                <div class="p-4 sm:p-5 border-b border-forest-100 sub-header-gradient flex justify-between items-center">
+                    <div class="flex items-center space-x-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-forest-600 text-white flex items-center justify-center shadow-sm">
+                            <i class="fa-solid fa-bullhorn text-xs"></i>
+                        </div>
+                        <h2 class="font-bold text-forest-900 text-lg">학급 공지사항</h2>
+                    </div>
+                    <span id="notice-count" class="text-xs bg-forest-200/80 text-forest-800 font-bold px-3 py-1 rounded-full">0건</span>
+                </div>
+
+                <!-- 작성 폼 -->
+                <form id="notice-form" class="p-4 border-b border-forest-100/70 space-y-2 bg-white">
+                    <input type="text" id="notice-title" placeholder="공지 제목 (예: 수학 수행평가 제출)" required 
+                           class="w-full text-sm px-3.5 py-2.5 border border-forest-200/80 rounded-xl focus:outline-none focus:ring-2 focus:ring-forest-500 bg-forest-50/30 text-slate-800 placeholder:text-slate-400 transition-all">
+                    <div class="flex gap-2">
+                        <input type="text" id="notice-content" placeholder="상세 내용 입력" required 
+                               class="w-full text-sm px-3.5 py-2.5 border border-forest-200/80 rounded-xl focus:outline-none focus:ring-2 focus:ring-forest-500 bg-forest-50/30 text-slate-800 placeholder:text-slate-400 transition-all">
+                        <button type="submit" class="bg-forest-700 hover:bg-forest-800 text-white font-semibold text-sm px-4 py-2.5 rounded-xl transition-all shadow-md hover:shadow-lg shrink-0 flex items-center active:scale-95">
+                            <i class="fa-solid fa-plus mr-1"></i> 등록
+                        </button>
+                    </div>
+                </form>
+
+                <!-- 목록 -->
+                <div id="notice-list" class="p-4 flex-grow overflow-y-auto space-y-3">
+                    <!-- Dynamic Items -->
+                </div>
+            </section>
+
+            <!-- 2. 오늘 할 일 (Checklist) -->
+            <section class="glass-card rounded-3xl flex flex-col h-[520px] transition-all hover:shadow-xl hover:-translate-y-0.5 duration-200 overflow-hidden">
+                <div class="p-4 sm:p-5 border-b border-forest-100 sub-header-gradient flex justify-between items-center">
+                    <div class="flex items-center space-x-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-forest-600 text-white flex items-center justify-center shadow-sm">
+                            <i class="fa-solid fa-list-check text-xs"></i>
+                        </div>
+                        <h2 class="font-bold text-forest-900 text-lg">오늘의 할 일</h2>
+                    </div>
+                    <span id="todo-count" class="text-xs bg-forest-200/80 text-forest-800 font-bold px-3 py-1 rounded-full">0/0 완료</span>
+                </div>
+
+                <!-- 작성 폼 -->
+                <form id="todo-form" class="p-4 border-b border-forest-100/70 flex gap-2 bg-white">
+                    <input type="text" id="todo-input" placeholder="할 일 (예: 영어 단어 외우기)" required 
+                           class="w-full text-sm px-3.5 py-2.5 border border-forest-200/80 rounded-xl focus:outline-none focus:ring-2 focus:ring-forest-500 bg-forest-50/30 text-slate-800 placeholder:text-slate-400 transition-all">
+                    <button type="submit" class="bg-forest-700 hover:bg-forest-800 text-white font-semibold text-sm px-4 py-2.5 rounded-xl transition-all shadow-md hover:shadow-lg shrink-0 flex items-center active:scale-95">
+                        <i class="fa-solid fa-plus mr-1"></i> 추가
+                    </button>
+                </form>
+
+                <!-- 목록 -->
+                <div id="todo-list" class="p-4 flex-grow overflow-y-auto space-y-2.5">
+                    <!-- Dynamic Items -->
+                </div>
+            </section>
+
+            <!-- 3. 학사 일정 관리 -->
+            <section class="glass-card rounded-3xl flex flex-col h-[520px] transition-all hover:shadow-xl hover:-translate-y-0.5 duration-200 overflow-hidden md:col-span-2 lg:col-span-1">
+                <div class="p-4 sm:p-5 border-b border-forest-100 sub-header-gradient flex justify-between items-center">
+                    <div class="flex items-center space-x-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-forest-600 text-white flex items-center justify-center shadow-sm">
+                            <i class="fa-regular fa-calendar-days text-xs"></i>
+                        </div>
+                        <h2 class="font-bold text-forest-900 text-lg">학사 일정</h2>
+                    </div>
+                    <span id="schedule-count" class="text-xs bg-forest-200/80 text-forest-800 font-bold px-3 py-1 rounded-full">0건</span>
+                </div>
+
+                <!-- 작성 폼 -->
+                <form id="schedule-form" class="p-4 border-b border-forest-100/70 space-y-2 bg-white">
+                    <div class="flex gap-2">
+                        <input type="date" id="schedule-date" required 
+                               class="text-sm px-3 py-2.5 border border-forest-200/80 rounded-xl focus:outline-none focus:ring-2 focus:ring-forest-500 bg-forest-50/30 text-slate-700 font-medium transition-all">
+                        <input type="text" id="schedule-title" placeholder="일정 (예: 현장체험학습)" required 
+                               class="w-full text-sm px-3.5 py-2.5 border border-forest-200/80 rounded-xl focus:outline-none focus:ring-2 focus:ring-forest-500 bg-forest-50/30 text-slate-800 placeholder:text-slate-400 transition-all">
+                    </div>
+                    <button type="submit" class="w-full bg-forest-700 hover:bg-forest-800 text-white font-semibold text-sm py-2.5 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center active:scale-95">
+                        <i class="fa-solid fa-calendar-plus mr-1.5"></i> 일정 등록하기
+                    </button>
+                </form>
+
+                <!-- 목록 -->
+                <div id="schedule-list" class="p-4 flex-grow overflow-y-auto space-y-2.5">
+                    <!-- Dynamic Items -->
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- 푸터 -->
+    <footer class="mt-auto py-6 text-center text-xs text-forest-800/60 font-medium">
+        <p>💚 오늘의 교실 — 따뜻하고 안전한 우리 반의 공간</p>
+    </footer>
+
+    <!-- 자바스크립트 로직 -->
+    <script>
+        // 날짜 표시 초기화
+        document.addEventListener('DOMContentLoaded', () => {
+            const now = new Date();
+            const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' };
+            document.getElementById('current-date-display').innerText = now.toLocaleDateString('ko-KR', options);
+            
+            // 학사일정 기본 날짜 설정 (오늘)
+            const todayIso = now.toISOString().split('T')[0];
+            document.getElementById('schedule-date').value = todayIso;
+
+            // 저장된 데이터 로드
+            loadData();
+        });
+
+        // 안내 팝업 닫기
+        function dismissBanner() {
+            const banner = document.getElementById('welcome-banner');
+            banner.style.opacity = '0';
+            setTimeout(() => banner.style.display = 'none', 200);
+        }
+
+        // --- 데이터 관리 (LocalStorage 기반) ---
+        let notices = JSON.parse(localStorage.getItem('cls_notices')) || [
+            { id: 1, title: '📌 첫 방문을 환영합니다!', content: '우측 상단 입력창을 이용해 우리 반 공지와 일정을 자유롭게 올려보세요.', date: new Date().toLocaleDateString('ko-KR') }
+        ];
+
+        let todos = JSON.parse(localStorage.getItem('cls_todos')) || [
+            { id: 1, text: '알림장 확인하기', completed: true },
+            { id: 2, text: '내일 교과서 챙기기', completed: false }
+        ];
+
+        let schedules = JSON.parse(localStorage.getItem('cls_schedules')) || [
+            { id: 1, date: new Date().toISOString().split('T')[0], title: '오늘의 교실 사용해보기' }
+        ];
+
+        function saveData() {
+            localStorage.setItem('cls_notices', JSON.stringify(notices));
+            localStorage.setItem('cls_todos', JSON.stringify(todos));
+            localStorage.setItem('cls_schedules', JSON.stringify(schedules));
+            renderAll();
+        }
+
+        // --- 공지사항 관련 ---
+        document.getElementById('notice-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const titleInput = document.getElementById('notice-title');
+            const contentInput = document.getElementById('notice-content');
+
+            notices.unshift({
+                id: Date.now(),
+                title: titleInput.value.trim(),
+                content: contentInput.value.trim(),
+                date: new Date().toLocaleDateString('ko-KR')
+            });
+
+            titleInput.value = '';
+            contentInput.value = '';
+            saveData();
+        });
+
+        function deleteNotice(id) {
+            notices = notices.filter(item => item.id !== id);
+            saveData();
+        }
+
+        function renderNotices() {
+            const container = document.getElementById('notice-list');
+            const countBadge = document.getElementById('notice-count');
+            countBadge.innerText = `${notices.length}건`;
+
+            if (notices.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-16 text-slate-400 text-sm flex flex-col items-center">
+                        <div class="w-12 h-12 rounded-2xl bg-forest-50 text-forest-300 flex items-center justify-center mb-2">
+                            <i class="fa-regular fa-folder-open text-xl"></i>
+                        </div>
+                        등록된 공지사항이 없습니다.
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = notices.map(item => `
+                <div class="p-4 bg-white border border-forest-100/80 rounded-2xl relative group hover:border-forest-300 hover:shadow-md transition-all">
+                    <div class="flex justify-between items-start mb-1.5">
+                        <h3 class="font-bold text-forest-950 text-sm break-all pr-6">${escapeHtml(item.title)}</h3>
+                        <button onclick="deleteNotice(${item.id})" class="text-slate-300 hover:text-rose-500 absolute top-3.5 right-3.5 transition-colors p-1">
+                            <i class="fa-solid fa-trash-can text-xs"></i>
+                        </button>
+                    </div>
+                    <p class="text-xs text-slate-600 mb-2.5 leading-relaxed whitespace-pre-wrap break-all">${escapeHtml(item.content)}</p>
+                    <span class="text-[11px] text-forest-600/70 font-medium block">${item.date}</span>
+                </div>
+            `).join('');
+        }
+
+        // --- 오늘의 할 일 관련 ---
+        document.getElementById('todo-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const input = document.getElementById('todo-input');
+
+            todos.push({
+                id: Date.now(),
+                text: input.value.trim(),
+                completed: false
+            });
+
+            input.value = '';
+            saveData();
+        });
+
+        function toggleTodo(id) {
+            todos = todos.map(item => item.id === id ? { ...item, completed: !item.completed } : item);
+            saveData();
+        }
+
+        function deleteTodo(id) {
+            todos = todos.filter(item => item.id !== id);
+            saveData();
+        }
+
+        function renderTodos() {
+            const container = document.getElementById('todo-list');
+            const countBadge = document.getElementById('todo-count');
+            const completedCount = todos.filter(t => t.completed).length;
+            
+            countBadge.innerText = `${completedCount}/${todos.length} 완료`;
+
+            if (todos.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-16 text-slate-400 text-sm flex flex-col items-center">
+                        <div class="w-12 h-12 rounded-2xl bg-forest-50 text-forest-300 flex items-center justify-center mb-2">
+                            <i class="fa-regular fa-square-check text-xl"></i>
+                        </div>
+                        할 일이 없습니다. 새로 추가해보세요!
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = todos.map(item => `
+                <div class="flex items-center justify-between p-3.5 rounded-2xl border ${item.completed ? 'bg-forest-50/40 border-forest-100 opacity-60' : 'bg-white border-forest-100/90 hover:border-forest-200 hover:shadow-sm'} transition-all">
+                    <label class="flex items-center space-x-3 cursor-pointer flex-grow min-w-0 pr-2">
+                        <input type="checkbox" ${item.completed ? 'checked' : ''} onchange="toggleTodo(${item.id})" 
+                               class="w-4 h-4 text-forest-600 rounded-md focus:ring-forest-500 border-forest-300 cursor-pointer accent-forest-600">
+                        <span class="text-sm text-slate-800 truncate ${item.completed ? 'line-through text-slate-400' : 'font-medium'}">${escapeHtml(item.text)}</span>
+                    </label>
+                    <button onclick="deleteTodo(${item.id})" class="text-slate-300 hover:text-rose-500 transition-colors shrink-0 p-1">
+                        <i class="fa-solid fa-xmark text-sm"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // --- 학사 일정 관련 ---
+        document.getElementById('schedule-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const dateInput = document.getElementById('schedule-date');
+            const titleInput = document.getElementById('schedule-title');
+
+            schedules.push({
+                id: Date.now(),
+                date: dateInput.value,
+                title: titleInput.value.trim()
+            });
+
+            // 날짜순 정렬
+            schedules.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            titleInput.value = '';
+            saveData();
+        });
+
+        function deleteSchedule(id) {
+            schedules = schedules.filter(item => item.id !== id);
+            saveData();
+        }
+
+        function renderSchedules() {
+            const container = document.getElementById('schedule-list');
+            const countBadge = document.getElementById('schedule-count');
+            countBadge.innerText = `${schedules.length}건`;
+
+            if (schedules.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-16 text-slate-400 text-sm flex flex-col items-center">
+                        <div class="w-12 h-12 rounded-2xl bg-forest-50 text-forest-300 flex items-center justify-center mb-2">
+                            <i class="fa-regular fa-calendar-xmark text-xl"></i>
+                        </div>
+                        등록된 학사 일정이 없습니다.
+                    </div>`;
+                return;
+            }
+
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            container.innerHTML = schedules.map(item => {
+                const isToday = item.date === todayStr;
+                const dateObj = new Date(item.date);
+                const formattedDate = `${dateObj.getMonth() + 1}월 ${dateObj.getDate()}일`;
+
+                return `
+                    <div class="flex items-center justify-between p-3.5 rounded-2xl border ${isToday ? 'bg-forest-100/60 border-forest-300 shadow-sm' : 'bg-white border-forest-100/90 hover:border-forest-200'} transition-all">
+                        <div class="flex items-center space-x-3">
+                            <span class="text-xs font-bold px-2.5 py-1 rounded-xl ${isToday ? 'bg-forest-700 text-white shadow-xs' : 'bg-forest-100 text-forest-800'}">
+                                ${formattedDate}
+                            </span>
+                            <span class="text-sm font-medium ${isToday ? 'text-forest-950 font-bold' : 'text-slate-800'}">${escapeHtml(item.title)}</span>
+                        </div>
+                        <button onclick="deleteSchedule(${item.id})" class="text-slate-300 hover:text-rose-500 transition-colors p-1">
+                            <i class="fa-solid fa-trash-can text-xs"></i>
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 보안을 위한 XSS 방지 함수
+        function escapeHtml(str) {
+            return str
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // 전체 렌더링 함수
+        function renderAll() {
+            renderNotices();
+            renderTodos();
+            renderSchedules();
+        }
+
+        function loadData() {
+            renderAll();
+        }
+    </script>
+</body>
+</html>
